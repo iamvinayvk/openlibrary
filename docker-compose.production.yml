@@ -30,7 +30,7 @@ services:
 
   solr_haproxy:
     profiles: ["ol-solr0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.7.2
     restart: unless-stopped
     networks:
       - webnet
@@ -150,7 +150,7 @@ services:
       - infobase-errorlog:/1/var/log/openlibrary/infobase-errors
   web_haproxy:
     profiles: ["ol-www0"]
-    image: haproxy:2.3.5
+    image: haproxy:2.7.2
     restart: unless-stopped
     hostname: "$HOSTNAME"
     networks:
