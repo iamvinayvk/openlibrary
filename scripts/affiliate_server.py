@@ -71,6 +71,7 @@ batch: Batch | None = None
 
 web.amazon_queue = queue.Queue()  # a thread-safe multi-producer, multi-consumer queue
 
+
 def get_current_amazon_batch() -> Batch:
     """
     At startup or when the month changes, create a new openlibrary.core.imports.Batch()
@@ -171,10 +172,14 @@ def process_amazon_batch(isbn_10s: list[str]) -> None:
 
     if books := [clean_amazon_metadata_for_load(product) for product in products]:
         if pending_books := get_pending_books(books):
-            stats.increment("ol.affiliate.amazon.total_items_batched_for_import", n=len(pending_books))
+            stats.increment(
+                "ol.affiliate.amazon.total_items_batched_for_import",
+                n=len(pending_books),
+            )
             get_current_amazon_batch().add_items(
                 [{'ia_id': b['source_records'][0], 'data': b} for b in pending_books]
             )
+
 
 def seconds_remaining(start_time: float) -> float:
     return max(API_MAX_WAIT_SECONDS - (time.time() - start_time), 0)
@@ -220,7 +225,9 @@ class Clear:
     def GET(self) -> str:
         qsize = web.amazon_queue.qsize()
         web.amazon_queue.queue.clear()
-        stats.put("ol.affiliate.amazon.currently_queued_isbns", web.amazon_queue.qsize())
+        stats.put(
+            "ol.affiliate.amazon.currently_queued_isbns", web.amazon_queue.qsize()
+        )
         return json.dumps({"Cleared": "True", "qsize": qsize})
 
 
@@ -260,8 +267,12 @@ class Submit:
             web.amazon_queue.put_nowait(isbn10)
 
         # Give us a snapshot over time of how many new isbns are currently queued
-        stats.put("ol.affiliate.amazon.currently_queued_isbns", web.amazon_queue.qsize(), rate=0.2)
-        return json.dumps({"status": "submitted", "queue":  web.amazon_queue.qsize()})
+        stats.put(
+            "ol.affiliate.amazon.currently_queued_isbns",
+            web.amazon_queue.qsize(),
+            rate=0.2,
+        )
+        return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
 
 
 def load_config(configfile):
@@ -312,7 +323,9 @@ def start_server():
     # init_sentry(app)
 
     if "pytest" not in sys.modules:
-        threading.Thread(target=amazon_lookup, args=(web.ctx.site, stats.client)).start()
+        threading.Thread(
+            target=amazon_lookup, args=(web.ctx.site, stats.client)
+        ).start()
 
     sys.argv = [sys.argv[0]] + list(args)
     app.run()
