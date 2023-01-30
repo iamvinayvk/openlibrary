@@ -276,7 +276,7 @@ class Submit:
 
 
 def load_config(configfile):
-    ## This loads openlibrary.yml + infobase.yml
+    # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
 
     stats.client = stats.create_stats_client(cfg=config)
